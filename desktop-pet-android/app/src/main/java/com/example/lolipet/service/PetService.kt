@@ -90,7 +90,8 @@ class PetService : Service() {
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         windowManager = wm
 
-        val size = (190 * density).toInt()
+        val width = (190 * density).toInt()
+        val height = (280 * density).toInt()
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = inflater.inflate(R.layout.pet_overlay, null)
         petView = view
@@ -105,8 +106,8 @@ class PetService : Service() {
         }
 
         val lp = WindowManager.LayoutParams(
-            size,
-            size,
+            width,
+            height,
             type,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or

@@ -345,8 +345,9 @@ window.PIXI.spine.base = window.PIXI.spine.base || window.PIXI.spine;
                 } else {
                     model.scale.set(Math.min(window.innerWidth, window.innerHeight) / 800);
                 }
-                model.x = window.innerWidth / 2;
-                model.y = window.innerHeight / 2;
+                var b2 = model.getBounds();
+                model.x = (window.innerWidth - b2.width) / 2 - b2.x;
+                model.y = (window.innerHeight - b2.height) / 2 - b2.y;
             } catch (e) {
                 model.scale.set(Math.min(window.innerWidth, window.innerHeight) / 800);
                 model.x = window.innerWidth / 2;
