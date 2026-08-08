@@ -98,9 +98,10 @@ window.PIXI.spine.base = window.PIXI.spine.base || window.PIXI.spine;
         lisa: {
             modelFile: "build_char_358_lisa.skel",
             type: "spine",
-            idleMotion: "Default",
+            idleMotion: "Relax",
             tapMotion: "Interact",
-            moodMotion: { happy: "Relax", sad: "Sit", shy: "Relax", angry: "Interact" }
+            moodMotion: { happy: "Relax", sad: "Sit", shy: "Relax", angry: "Interact" },
+            randomMotions: ["Relax", "Move", "Sit", "Sleep"]
         }
     };
     function getCfg() {
@@ -372,7 +373,19 @@ window.PIXI.spine.base = window.PIXI.spine.base || window.PIXI.spine;
             try {
                 if (!isTalking && currentMood === "idle") {
                     var a = pickRandom(actions);
-                    if (a === "blink") { playTap(); setTimeout(resetIdle, 400); }
+                    if (a === "blink") {
+                        if (isSpineModel()) {
+                            var rm = getCfg().randomMotions || ["Relax", "Move"];
+                            var m = pickRandom(rm);
+                            spineMotion(m);
+                            setTimeout(function () {
+                                try { if (currentMood === "idle") spineMotion(getCfg().idleMotion || "Relax"); } catch (e) {}
+                            }, 2500 + Math.random() * 2500);
+                        } else {
+                            playTap();
+                            setTimeout(resetIdle, 400);
+                        }
+                    }
                 }
             } catch (e) {}
             scheduleRandomAction();
