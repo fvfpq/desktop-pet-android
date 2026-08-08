@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group>
+        <!-- 背景 -->
+        <path
+            android:fillColor="#FF6B9D"
+            android:pathData="M54,4 A50,50 0 1,0 54,104 A50,50 0 1,0 54,4 Z" />
+        <!-- 脸 -->
+        <path
+            android:fillColor="#FFE3D6"
+            android:pathData="M36,38 Q36,62 54,62 Q72,62 72,38 Q72,24 54,24 Q36,24 36,38 Z" />
+        <!-- 刘海 -->
+        <path
+            android:fillColor="#7B4A2D"
+            android:pathData="M36,36 Q40,22 54,22 Q68,22 72,36 Q62,28 54,28 Q46,28 36,36 Z" />
+        <!-- 左眼 -->
+        <path
+            android:fillColor="#3A2A2A"
+            android:pathData="M44,40 Q47,37 50,40 Q47,44 44,40 Z" />
+        <!-- 右眼 -->
+        <path
+            android:fillColor="#3A2A2A"
+            android:pathData="M58,40 Q61,37 64,40 Q61,44 58,40 Z" />
+        <!-- 嘴 -->
+        <path
+            android:fillColor="#E8A0A0"
+            android:pathData="M50,50 Q54,54 58,50 Q54,53 50,50 Z" />
+        <!-- 腮红 -->
+        <path
+            android:fillColor="#FFB3C1"
+            android:pathData="M37,46 A4,3 0 1,0 37,52 A4,3 0 1,0 37,46 Z" />
+        <path
+            android:fillColor="#FFB3C1"
+            android:pathData="M71,46 A4,3 0 1,0 71,52 A4,3 0 1,0 71,46 Z" />
+    </group>
+</vector>

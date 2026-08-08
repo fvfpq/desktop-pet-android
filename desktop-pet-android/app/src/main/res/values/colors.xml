@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="pink_primary">#FF6B9D</color>
+    <color name="pink_dark">#E8557F</color>
+    <color name="pink_light">#FFC2D4</color>
+    <color name="bg_cream">#FFF7F3</color>
+    <color name="bubble_white">#FFFFFFFF</color>
+    <color name="text_dark">#4A2C3A</color>
+    <color name="text_gray">#9B7A8A</color>
+    <color name="hair_color">#7B4A2D</color>
+    <color name="skin_color">#FFE3D6</color>
+    <color name="dress_color">#FF8FB1</color>
+</resources>

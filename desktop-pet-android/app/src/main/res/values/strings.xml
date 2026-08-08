@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">萝莉桌宠</string>
+    <string name="pet_name">小萝莉</string>
+
+    <string name="chat_hint">和小萝莉说点什么…</string>
+    <string name="send">发送</string>
+    <string name="settings">设置</string>
+    <string name="start_pet">召唤桌宠</string>
+    <string name="stop_pet">收回桌宠</string>
+    <string name="pet_running">桌宠正在陪伴你</string>
+    <string name="pet_stopped">桌宠已收回</string>
+
+    <string name="api_key_label">DeepSeek API Key</string>
+    <string name="api_key_hint">sk-xxx，在 platform.deepseek.com 获取</string>
+    <string name="base_url_label">API 地址</string>
+    <string name="model_label">模型名称</string>
+    <string name="persona_label">角色设定</string>
+    <string name="persona_hint">喂给小萝莉的人设，例如：你是活泼可爱的二次元萝莉桌宠…</string>
+    <string name="tts_label">语音回复</string>
+    <string name="wander_label">自动散步</string>
+    <string name="show_bubble_label">显示对话气泡</string>
+
+    <string name="save">保存</string>
+    <string name="test_conn">测试连接</string>
+    <string name="saved_toast">设置已保存</string>
+    <string name="test_ok">连接成功！小萝莉随时待命~</string>
+    <string name="test_fail">连接失败，请检查 Key 和网络</string>
+</resources>

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_cream"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- 标题 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/pink_dark"
+            android:gravity="center"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/pet_stopped"
+            android:textSize="14sp"
+            android:textColor="@color/text_gray"
+            android:gravity="center"
+            android:layout_marginBottom="12dp" />
+
+        <!-- 召唤/收回按钮 -->
+        <Button
+            android:id="@+id/btn_toggle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_pet"
+            android:backgroundTint="@color/pink_primary"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btn_chat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/chat_hint"
+            android:backgroundTint="@color/pink_light"
+            android:textColor="@color/pink_dark"
+            android:textSize="16sp" />
+
+        <!-- 配置区 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DeepSeek 配置"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="20dp"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_api_key"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/api_key_hint"
+            android:inputType="textPassword"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/input_bg"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/et_base_url"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/base_url_label"
+            android:inputType="textUri"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/input_bg"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/et_model"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/model_label"
+            android:inputType="text"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/input_bg"
+            android:padding="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="宠物形象"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
+        <RadioGroup
+            android:id="@+id/rg_pet_model"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp">
+
+            <RadioButton
+                android:id="@+id/rb_shizuku"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="shizuku（看板娘）"
+                android:textColor="@color/text_dark" />
+
+            <RadioButton
+                android:id="@+id/rb_haru"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="haru（绿发少女）"
+                android:textColor="@color/text_dark" />
+
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/persona_label"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_persona"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/persona_hint"
+            android:inputType="textMultiLine"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/input_bg"
+            android:padding="12dp"
+            android:minLines="4"
+            android:gravity="top" />
+
+        <!-- 功能开关 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="功能开关"
+            android:textStyle="bold"
+            android:textColor="@color/text_dark"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/sw_tts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/tts_label"
+            android:textColor="@color/text_dark"
+            android:checked="true" />
+
+        <Switch
+            android:id="@+id/sw_wander"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/wander_label"
+            android:textColor="@color/text_dark"
+            android:checked="true" />
+
+        <Switch
+            android:id="@+id/sw_bubble"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/show_bubble_label"
+            android:textColor="@color/text_dark"
+            android:checked="true" />
+
+        <Switch
+            android:id="@+id/sw_auto_start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="开机自启"
+            android:textColor="@color/text_dark" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/save"
+            android:backgroundTint="@color/pink_primary"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_test"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="24dp"
+            android:text="@string/test_conn"
+            android:backgroundTint="@color/pink_light"
+            android:textColor="@color/pink_dark"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</ScrollView>

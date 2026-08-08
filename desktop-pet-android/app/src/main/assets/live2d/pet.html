@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>LoliPet Live2D</title>
+<style>
+    html, body {
+        margin: 0; padding: 0;
+        width: 100%; height: 100%;
+        overflow: hidden;
+        background: transparent;
+        -webkit-tap-highlight-color: transparent;
+    }
+    #stage {
+        width: 100%; height: 100%;
+        display: block;
+        background: transparent;
+    }
+    /* 顶部悬浮控制条 */
+    #toolbar {
+        position: fixed; top: 0; left: 0; right: 0;
+        height: 34px;
+        display: flex; justify-content: flex-end; align-items: center;
+        gap: 4px; padding: 0 8px;
+        background: rgba(0,0,0,0.25);
+        border-radius: 0 0 12px 12px;
+        transition: opacity .2s;
+        z-index: 10;
+    }
+    #toolbar.hidden { opacity: 0; pointer-events: none; }
+    #toolbar button {
+        border: none; background: rgba(255,255,255,0.85);
+        color: #E8557F; font-size: 14px; font-weight: bold;
+        border-radius: 14px; padding: 3px 10px;
+        cursor: pointer;
+    }
+</style>
+</head>
+<body>
+<div id="toolbar" class="hidden">
+    <button onclick="window.__exit()">收起</button>
+</div>
+<canvas id="stage"></canvas>
+<script src="libs/live2d.min.js"></script>
+<script src="libs/live2dcubismcore.min.js"></script>
+<script src="libs/pixi-bundle.js"></script>
+<script>
+(function () {
+    "use strict";
+    var app = null;
+    var model = null;
+    var currentMood = "idle";
+    var modelName = "shizuku";
+    var pendingState = null;
+    var isTalking = false;
+    var bobPhase = 0;
+    var face = { happy: 0, shy: 0, sad: 0, angry: 0 };
+
+    // 模型适配：不同模型 motion 组名与表情名不同
+    var cfg = {
+        shizuku: {
+            modelFile: "shizuku.model.json",
+            idleGroup: "idle",
+            tapGroup: "tap_body",
+            exp: { happy: "f01", sad: "f02", shy: "f03", angry: "f04" }
+        },
+        haru: {
+            modelFile: "haru_greeter_t03.model3.json",
+            idleGroup: "Idle",
+            tapGroup: "Tap",
+            exp: { happy: "f01", sad: "f03", shy: "f02", angry: "f04" }
+        }
+    };
+    function getCfg() {
+        return cfg[modelName] || cfg.shizuku;
+    }
+
+    // 从 URL 参数读取模型名
+    (function () {
+        try {
+            var m = window.location.search.match(/[?&]model=([^&]+)/);
+            if (m) modelName = decodeURIComponent(m[1]);
+        } catch (e) { modelName = "shizuku"; }
+    })();
+
+    function createApp() {
+        var canvas = document.getElementById("stage");
+        app = new window.PIXI.Application({
+            view: canvas,
+            backgroundAlpha: 0,
+            preserveDrawingBuffer: true,
+            autoStart: true,
+            resizeTo: window,
+            antialias: true,
+            resolution: Math.min(window.devicePixelRatio || 1, 2)
+        });
+    }
+
+    function pickRandom(arr) {
+        if (!arr || arr.length === 0) return null;
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function loadModel(name) {
+        var c = cfg[name] || cfg.shizuku;
+        var path = "models/" + name + "/" + c.modelFile;
+        return new Promise(function (resolve, reject) {
+            if (!window.Live2DModel) { reject(new Error("Live2DModel 未加载")); return; }
+            window.Live2DModel.from(path, {
+                autoInteract: false,
+                motionPreload: "idle",
+                idleMotionGroup: c.idleGroup
+            }).then(function (m) {
+                resolve(m);
+            }).catch(reject);
+        });
+    }
+
+    function applyExpression(name) {
+        try { model.expression(name); } catch (e) {}
+    }
+
+    // 情绪 -> 表情（按模型适配）
+    function moodExpr(mood) {
+        var c = getCfg();
+        return c.exp[mood] || null;
+    }
+
+    function playMood(mood) {
+        if (!model) return;
+        currentMood = mood;
+        var expr = moodExpr(mood);
+        if (expr) applyExpression(expr);
+        try { model.motion(getCfg().tapGroup); } catch (e) {}
+    }
+
+    function setMood(mood) {
+        if (!model) return;
+        if (mood === "idle") {
+            // 重置到默认表情并播放空闲
+            try { model.expression(null); } catch (e) {}
+            currentMood = "idle";
+            try { model.motion(getCfg().idleGroup); } catch (e) {}
+            return;
+        }
+        if (mood === "shy") {
+            face.shy = 1;
+            try { model.expression(moodExpr("shy")); } catch (e) {}
+            try { model.motion(getCfg().tapGroup); } catch (e) {}
+            // 脸红渐退
+            setTimeout(function () { face.shy = 0; }, 3000);
+            return;
+        }
+        playMood(mood);
+    }
+
+    // 说话嘴型：驱动嘴部参数开合
+    var mouthTimer = null;
+    var mouthPhase = 0;
+    function setMouthOpen(v) {
+        try {
+            var core = model.internalModel && model.internalModel.coreModel;
+            if (core && core.setParameterValueById) {
+                core.setParameterValueById("ParamMouthOpenY", v);
+                core.setParameterValueById("ParamMouthForm", v * 0.3);
+            }
+        } catch (e) {}
+    }
+    function startTalking() {
+        isTalking = true;
+        try { model.motion(getCfg().idleGroup); } catch (e) {}
+        if (mouthTimer) clearInterval(mouthTimer);
+        mouthTimer = setInterval(function () {
+            mouthPhase = (mouthPhase + 1) % 4;
+            var v = mouthPhase < 3 ? 0.35 + 0.65 * Math.abs(Math.sin(mouthPhase * 1.2)) : 0.05;
+            setMouthOpen(v);
+        }, 120);
+    }
+    function stopTalking() {
+        isTalking = false;
+        if (mouthTimer) { clearInterval(mouthTimer); mouthTimer = null; }
+        setMouthOpen(0);
+        if (currentMood !== "idle") {
+            setMood(currentMood);
+        } else {
+            try { model.expression(null); } catch (e) {}
+            try { model.motion(getCfg().idleGroup); } catch (e) {}
+        }
+    }
+
+    function resizeModel() {
+        if (!model) return;
+        var scale = Math.min(window.innerWidth, window.innerHeight) / 1000;
+        model.scale.set(scale * 1.1);
+        model.x = window.innerWidth / 2;
+        model.y = window.innerHeight * 0.96;
+        model.anchor.set(0.5, 1);
+    }
+
+    function resetIdle() {
+        if (!model) return;
+        setMood("idle");
+    }
+
+    // 随机空闲行为
+    function scheduleRandomAction() {
+        var actions = ["blink", "idle", "look"];
+        setTimeout(function () {
+            try {
+                if (!isTalking && currentMood === "idle") {
+                    var a = pickRandom(actions);
+                    if (a === "blink") { model.expression("f01"); setTimeout(resetIdle, 300); }
+                }
+            } catch (e) {}
+            scheduleRandomAction();
+        }, 4000 + Math.random() * 4000);
+    }
+
+    function init() {
+        createApp();
+        loadModel(modelName).then(function (m) {
+            model = m;
+            app.stage.addChild(model);
+            resizeModel();
+            window.addEventListener("resize", resizeModel);
+            setMood("idle");
+            scheduleRandomAction();
+            // 通知原生已就绪
+            if (window.__onReady) window.__onReady(modelName);
+        }).catch(function (err) {
+            console.error("模型加载失败:", err);
+            if (window.__onError) window.__onError(String(err && err.message || err));
+        });
+    }
+
+    // 暴露给原生的 API
+    window.__api = {
+        setMood: setMood,
+        startTalking: startTalking,
+        stopTalking: stopTalking,
+        reset: resetIdle,
+        setModel: function (name) {
+            modelName = name;
+            var old = model;
+            model = null;
+            loadModel(name).then(function (m) {
+                if (old) app.stage.removeChild(old);
+                model = m;
+                app.stage.addChild(model);
+                resizeModel();
+                setMood("idle");
+            }).catch(function (err) {
+                model = old;
+                if (window.__onError) window.__onError(String(err && err.message || err));
+            });
+        }
+    };
+
+    // 点击舞台 -> 交互反馈
+    document.getElementById("stage").addEventListener("pointerdown", function (e) {
+        if (window.__onTap) window.__onTap(e.clientX, e.clientY);
+    });
+
+    init();
+})();
+</script>
+</body>
+</html>
