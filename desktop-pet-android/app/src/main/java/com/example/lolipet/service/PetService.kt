@@ -369,8 +369,8 @@ class PetService : Service() {
         }
         return builder
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("小萝莉在这里")
-            .setContentText("点击打开聊天，和小萝莉互动吧")
+            .setContentTitle("桌宠在这里")
+            .setContentText("点击打开聊天，和桌宠互动吧")
             .setContentIntent(pendingOpen)
             .addAction(0, "设置", pendingSettings)
             .setOngoing(true)

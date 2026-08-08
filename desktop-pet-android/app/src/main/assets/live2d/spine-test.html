@@ -77,9 +77,20 @@ window.PIXI.spine.base = window.PIXI.spine.base || window.PIXI.spine;
       } else {
         console.error('NO_STATE');
       }
-      spine.position.set(app.screen.width/2, app.screen.height/2);
+      spine.position.set(0, 0);
       spine.scale.set(1.0);
       app.stage.addChild(spine);
+      var b = spine.getBounds();
+      var pad = 20;
+      var sx = (app.screen.width - pad * 2) / b.width;
+      var sy = (app.screen.height - pad * 2) / b.height;
+      var s = Math.min(sx, sy);
+      spine.scale.set(s);
+      var b2 = spine.getBounds();
+      spine.x = (app.screen.width - b2.width) / 2 - b2.x;
+      spine.y = (app.screen.height - b2.height) / 2 - b2.y;
+      var b3 = spine.getBounds();
+      console.log('CENTERED bounds:', Math.round(b3.x), Math.round(b3.y), Math.round(b3.width), Math.round(b3.height));
       console.log('ADDED:', spine.visible, 'children:', spine.children.length);
       window.__onReady && window.__onReady();
     } catch (e) {
