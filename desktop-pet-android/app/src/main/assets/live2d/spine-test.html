@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}
+canvas{display:block;}
+#info{position:fixed;top:8px;left:8px;color:#0f0;font:12px monospace;z-index:99;background:rgba(0,0,0,.6);padding:4px;}
+</style>
+</head>
+<body>
+<div id="info">loading...</div>
+<canvas id="stage"></canvas>
+<script src="libs/live2d.min.js"></script>
+<script src="libs/live2dcubismcore.min.js"></script>
+<script src="libs/pixi-bundle.js"></script>
+<script src="libs/spine-base.js"></script>
+<script src="libs/pixi-spine.js"></script>
+<script>
+window.PIXI.spine.base = window.PIXI.spine.base || window.PIXI.spine;
+</script>
+<script src="libs/spine-runtime-3.8.js"></script>
+<script>
+(function(){
+  console.log('PIXI_VER:', window.PIXI.VERSION, '| spine38:', !!window.PIXI.spine38, '| spine:', !!window.PIXI.spine);
+  console.log('SPINE38_KEYS:', window.PIXI.spine38 ? Object.keys(window.PIXI.spine38).slice(0,20).join(',') : 'none');
+  console.log('SPINE_KEYS:', window.PIXI.spine ? Object.keys(window.PIXI.spine).slice(0,20).join(',') : 'none');
+  var app = new window.PIXI.Application({ view: document.getElementById('stage'), backgroundAlpha: 0, preserveDrawingBuffer: true, resizeTo: window });
+  console.log('APP_PLUGINS:', JSON.stringify(Object.keys(app.renderer.plugins || {})));
+  var info = document.getElementById('info');
+
+  function loadTexture(baseUrl) {
+    return new Promise(function(resolve, reject){
+      var loader = window.PIXI.Loader.shared || new window.PIXI.Loader();
+      loader.add('img', baseUrl + '.png');
+      loader.load(function(l, res){
+        if (res.img && res.img.texture) {
+          resolve(new window.PIXI.Texture(res.img.texture.baseTexture));
+        } else if (res.img) {
+          resolve(res.img);
+        } else {
+          reject(new Error('load fail'));
+        }
+      });
+    });
+  }
+
+  async function loadSpine(url, imgUrl) {
+    var response = await fetch(url);
+    var buf = await response.arrayBuffer();
+    var atlasText = await (await fetch(url.replace('.skel','.atlas'))).text();
+    var tex = await loadTexture(imgUrl);
+    var core = window.PIXI.spine38 || window.PIXI.spine;
+    var atlasCls = window.PIXI.spine.TextureAtlas || core.TextureAtlas;
+    var atlas = new atlasCls(atlasText, function(line, cb){ cb(tex); });
+    var atlasLoader = new core.AtlasAttachmentLoader(atlas);
+    var binary = new core.SkeletonBinary(atlasLoader);
+    binary.scale = 1;
+    var skeletonData = binary.readSkeletonData(new Uint8Array(buf));
+    var spine = new window.PIXI.spine.Spine(skeletonData);
+    return spine;
+  }
+
+  (async function(){
+    try {
+      var base = 'models/lisa/build_char_358_lisa';
+      var spine = await loadSpine(base + '.skel', base);
+      window.__spine = spine;
+      var anims = spine.spineData.animations.map(function(a){return typeof a === 'string' ? a : a.name;});
+      info.textContent = '动画: ' + anims.join(', ');
+      console.log('ANIMS:', JSON.stringify(anims));
+      if (spine.state) {
+        try {
+          spine.state.setAnimation(0, anims[0] || 'Default', true);
+          console.log('SETANIM_OK');
+        } catch (e2) { console.error('SETANIM_ERR:', e2.message); }
+      } else {
+        console.error('NO_STATE');
+      }
+      spine.position.set(app.screen.width/2, app.screen.height/2);
+      spine.scale.set(1.0);
+      app.stage.addChild(spine);
+      console.log('ADDED:', spine.visible, 'children:', spine.children.length);
+      window.__onReady && window.__onReady();
+    } catch (e) {
+      info.textContent = 'ERROR: ' + e.message;
+      console.error('SPINE_ERR:', e);
+      window.__onError && window.__onError(String(e.message));
+    }
+  })();
+})();
+</script>
+</body>
+</html>

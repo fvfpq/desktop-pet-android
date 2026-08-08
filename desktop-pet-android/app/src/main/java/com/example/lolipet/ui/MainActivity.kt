@@ -79,6 +79,10 @@ class MainActivity : AppCompatActivity() {
         swAutoStart.isChecked = Prefs.autoStart
         when (Prefs.petModel) {
             "haru" -> rgPetModel.check(R.id.rb_haru)
+            "tsumiki" -> rgPetModel.check(R.id.rb_tsumiki)
+            "nico" -> rgPetModel.check(R.id.rb_nico)
+            "koharu" -> rgPetModel.check(R.id.rb_koharu)
+            "lisa" -> rgPetModel.check(R.id.rb_lisa)
             else -> rgPetModel.check(R.id.rb_shizuku)
         }
     }
@@ -94,6 +98,10 @@ class MainActivity : AppCompatActivity() {
         Prefs.autoStart = swAutoStart.isChecked
         Prefs.petModel = when (rgPetModel.checkedRadioButtonId) {
             R.id.rb_haru -> "haru"
+            R.id.rb_tsumiki -> "tsumiki"
+            R.id.rb_nico -> "nico"
+            R.id.rb_koharu -> "koharu"
+            R.id.rb_lisa -> "lisa"
             else -> "shizuku"
         }
         Toast.makeText(this, R.string.saved_toast, Toast.LENGTH_SHORT).show()

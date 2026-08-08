@@ -108,8 +108,16 @@
             android:id="@+id/rg_pet_model"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginTop="4dp">
+
+            <RadioButton
+                android:id="@+id/rb_lisa"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="铃兰（明日方舟，推荐）"
+                android:textColor="@color/text_dark"
+                android:checked="true" />
 
             <RadioButton
                 android:id="@+id/rb_shizuku"
@@ -123,6 +131,27 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="haru（绿发少女）"
+                android:textColor="@color/text_dark" />
+
+            <RadioButton
+                android:id="@+id/rb_tsumiki"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="tsumiki（金发双马尾）"
+                android:textColor="@color/text_dark" />
+
+            <RadioButton
+                android:id="@+id/rb_nico"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="nico（粉发偶像）"
+                android:textColor="@color/text_dark" />
+
+            <RadioButton
+                android:id="@+id/rb_koharu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="koharu（双马尾）"
                 android:textColor="@color/text_dark" />
 
         </RadioGroup>

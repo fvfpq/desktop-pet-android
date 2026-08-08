@@ -90,7 +90,7 @@ class PetService : Service() {
         val wm = getSystemService(WINDOW_SERVICE) as WindowManager
         windowManager = wm
 
-        val size = (260 * density).toInt()
+        val size = (190 * density).toInt()
         val inflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val view = inflater.inflate(R.layout.pet_overlay, null)
         petView = view

@@ -45,6 +45,12 @@
 <script src="libs/live2d.min.js"></script>
 <script src="libs/live2dcubismcore.min.js"></script>
 <script src="libs/pixi-bundle.js"></script>
+<script src="libs/spine-base.js"></script>
+<script src="libs/pixi-spine.js"></script>
+<script>
+window.PIXI.spine.base = window.PIXI.spine.base || window.PIXI.spine;
+</script>
+<script src="libs/spine-runtime-3.8.js"></script>
 <script>
 (function () {
     "use strict";
@@ -70,10 +76,55 @@
             idleGroup: "Idle",
             tapGroup: "Tap",
             exp: { happy: "f01", sad: "f03", shy: "f02", angry: "f04" }
+        },
+        tsumiki: {
+            modelFile: "tsumiki.model.json",
+            idleGroup: "idle",
+            tapGroup: "",
+            exp: { happy: "F01", sad: "F02", shy: "F03", angry: "F04" }
+        },
+        nico: {
+            modelFile: "nico.model.json",
+            idleGroup: "idle",
+            tapGroup: "",
+            exp: { happy: null, sad: null, shy: null, angry: null }
+        },
+        koharu: {
+            modelFile: "koharu.model.json",
+            idleGroup: "idle",
+            tapGroup: "",
+            exp: { happy: null, sad: null, shy: null, angry: null }
+        },
+        lisa: {
+            modelFile: "build_char_358_lisa.skel",
+            type: "spine",
+            idleMotion: "Default",
+            tapMotion: "Interact",
+            moodMotion: { happy: "Relax", sad: "Sit", shy: "Relax", angry: "Interact" }
         }
     };
     function getCfg() {
         return cfg[modelName] || cfg.shizuku;
+    }
+
+    function isSpineModel() {
+        return getCfg().type === "spine" || (model && model.spineData);
+    }
+
+    function spineMotion(name) {
+        var c = getCfg();
+        if (!name) return;
+        try {
+            var anims = model.spineData.animations;
+            var found = null;
+            for (var i = 0; i < anims.length; i++) {
+                var n = typeof anims[i] === "string" ? anims[i] : anims[i].name;
+                if (n === name) { found = n; break; }
+            }
+            if (found) {
+                model.state.setAnimation(0, found, name === (c.idleMotion || "Default"));
+            }
+        } catch (e) {}
     }
 
     // 从 URL 参数读取模型名
@@ -104,6 +155,9 @@
 
     function loadModel(name) {
         var c = cfg[name] || cfg.shizuku;
+        if (c.type === "spine") {
+            return loadSpineModel(name, c);
+        }
         var path = "models/" + name + "/" + c.modelFile;
         return new Promise(function (resolve, reject) {
             if (!window.Live2DModel) { reject(new Error("Live2DModel 未加载")); return; }
@@ -117,6 +171,42 @@
         });
     }
 
+    function loadTexture(url) {
+        return new Promise(function (resolve, reject) {
+            var loader = window.PIXI.Loader.shared || new window.PIXI.Loader();
+            loader.reset();
+            loader.add("img", url);
+            loader.load(function (l, res) {
+                if (res.img && res.img.texture) resolve(new window.PIXI.Texture(res.img.texture.baseTexture));
+                else if (res.img) resolve(res.img);
+                else reject(new Error("texture load fail"));
+            });
+        });
+    }
+
+    function loadSpineModel(name, c) {
+        var base = "models/" + name + "/" + c.modelFile.replace(/\.skel$/, "");
+        var skelUrl = base + ".skel";
+        var atlasUrl = base + ".atlas";
+        var pngUrl = base + ".png";
+        return fetch(skelUrl).then(function (r) { return r.arrayBuffer(); }).then(function (buf) {
+            return fetch(atlasUrl).then(function (r) { return r.text(); }).then(function (atlasText) {
+                return loadTexture(pngUrl).then(function (tex) {
+                    var core = window.PIXI.spine38 || window.PIXI.spine;
+                    var atlasCls = window.PIXI.spine.TextureAtlas || core.TextureAtlas;
+                    var atlas = new atlasCls(atlasText, function (line, cb) { cb(tex); });
+                    var atlasLoader = new core.AtlasAttachmentLoader(atlas);
+                    var binary = new core.SkeletonBinary(atlasLoader);
+                    binary.scale = 1;
+                    var skeletonData = binary.readSkeletonData(new Uint8Array(buf));
+                    var spine = new window.PIXI.spine.Spine(skeletonData);
+                    spine.autoUpdate = true;
+                    return spine;
+                });
+            });
+        });
+    }
+
     function applyExpression(name) {
         try { model.expression(name); } catch (e) {}
     }
@@ -127,27 +217,71 @@
         return c.exp[mood] || null;
     }
 
+    function playTap() {
+        var c = getCfg();
+        if (isSpineModel()) {
+            spineMotion(c.tapMotion || "Interact");
+            var idle = c.idleMotion || "Default";
+            var self = model;
+            setTimeout(function () {
+                if (self && self.state) {
+                    var current = self.state.tracks[0];
+                    if (!current || current.animation.name === (c.tapMotion || "Interact")) {
+                        self.state.setAnimation(0, idle, true);
+                    }
+                }
+            }, 1600);
+            return;
+        }
+        var group = c.tapGroup;
+        try {
+            if (group) {
+                model.motion(group);
+            } else {
+                // 无专用点击组时，从默认组随机播一个动作
+                model.motion();
+            }
+        } catch (e) {}
+    }
+
     function playMood(mood) {
         if (!model) return;
         currentMood = mood;
+        if (isSpineModel()) {
+            var mm = getCfg().moodMotion || {};
+            var m = mm[mood] || getCfg().idleMotion || "Default";
+            spineMotion(m);
+            return;
+        }
         var expr = moodExpr(mood);
         if (expr) applyExpression(expr);
-        try { model.motion(getCfg().tapGroup); } catch (e) {}
+        playTap();
     }
 
     function setMood(mood) {
         if (!model) return;
         if (mood === "idle") {
+            currentMood = "idle";
+            if (isSpineModel()) {
+                try { spineMotion(getCfg().idleMotion || "Default"); } catch (e) {}
+                return;
+            }
             // 重置到默认表情并播放空闲
             try { model.expression(null); } catch (e) {}
-            currentMood = "idle";
             try { model.motion(getCfg().idleGroup); } catch (e) {}
             return;
         }
         if (mood === "shy") {
             face.shy = 1;
-            try { model.expression(moodExpr("shy")); } catch (e) {}
-            try { model.motion(getCfg().tapGroup); } catch (e) {}
+            if (isSpineModel()) {
+                var sm = getCfg().moodMotion || {};
+                spineMotion(sm.shy || "Relax");
+                setTimeout(function () { face.shy = 0; }, 3000);
+                return;
+            }
+            var expr = moodExpr("shy");
+            if (expr) applyExpression(expr);
+            playTap();
             // 脸红渐退
             setTimeout(function () { face.shy = 0; }, 3000);
             return;
@@ -159,6 +293,7 @@
     var mouthTimer = null;
     var mouthPhase = 0;
     function setMouthOpen(v) {
+        if (isSpineModel()) return;
         try {
             var core = model.internalModel && model.internalModel.coreModel;
             if (core && core.setParameterValueById) {
@@ -169,6 +304,10 @@
     }
     function startTalking() {
         isTalking = true;
+        if (isSpineModel()) {
+            try { spineMotion("Move"); } catch (e) {}
+            return;
+        }
         try { model.motion(getCfg().idleGroup); } catch (e) {}
         if (mouthTimer) clearInterval(mouthTimer);
         mouthTimer = setInterval(function () {
@@ -179,6 +318,10 @@
     }
     function stopTalking() {
         isTalking = false;
+        if (isSpineModel()) {
+            try { spineMotion(getCfg().idleMotion || "Default"); } catch (e) {}
+            return;
+        }
         if (mouthTimer) { clearInterval(mouthTimer); mouthTimer = null; }
         setMouthOpen(0);
         if (currentMood !== "idle") {
@@ -191,8 +334,27 @@
 
     function resizeModel() {
         if (!model) return;
+        if (isSpineModel()) {
+            try {
+                var bounds = model.getBounds();
+                var bw = bounds.width, bh = bounds.height;
+                if (bw > 1 && bh > 1) {
+                    var s = Math.min(window.innerWidth / bw * 0.9, window.innerHeight / bh * 0.85);
+                    model.scale.set(s);
+                } else {
+                    model.scale.set(Math.min(window.innerWidth, window.innerHeight) / 800);
+                }
+                model.x = window.innerWidth / 2;
+                model.y = window.innerHeight / 2;
+            } catch (e) {
+                model.scale.set(Math.min(window.innerWidth, window.innerHeight) / 800);
+                model.x = window.innerWidth / 2;
+                model.y = window.innerHeight / 2;
+            }
+            return;
+        }
         var scale = Math.min(window.innerWidth, window.innerHeight) / 1000;
-        model.scale.set(scale * 1.1);
+        model.scale.set(scale * 0.9);
         model.x = window.innerWidth / 2;
         model.y = window.innerHeight * 0.96;
         model.anchor.set(0.5, 1);
@@ -210,7 +372,7 @@
             try {
                 if (!isTalking && currentMood === "idle") {
                     var a = pickRandom(actions);
-                    if (a === "blink") { model.expression("f01"); setTimeout(resetIdle, 300); }
+                    if (a === "blink") { playTap(); setTimeout(resetIdle, 400); }
                 }
             } catch (e) {}
             scheduleRandomAction();

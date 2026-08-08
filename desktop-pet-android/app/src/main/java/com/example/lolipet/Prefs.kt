@@ -47,7 +47,7 @@ object Prefs {
         set(value) = sp.edit().putBoolean("show_bubble", value).apply()
 
     var petModel: String
-        get() = sp.getString("pet_model", "shizuku") ?: "shizuku"
+        get() = sp.getString("pet_model", "lisa") ?: "lisa"
         set(value) = sp.edit().putString("pet_model", value).apply()
 
     var autoStart: Boolean
